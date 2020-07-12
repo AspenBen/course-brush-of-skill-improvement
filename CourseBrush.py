@@ -1,4 +1,3 @@
-#coding:utf-8
 import pyautogui
 import threading
 import time
@@ -16,7 +15,7 @@ class Auto_learn:
         print("get button positon")
         while True:
             try:
-                print("watch the 'х╥хо' button")
+                print("watch the 'confirm' button")
                 self.position = pyautogui.locateOnScreen(self.button, confidence=0.9)
                 if self.position is not None:
                     print("we find it")
