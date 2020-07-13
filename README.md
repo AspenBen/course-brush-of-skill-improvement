@@ -11,4 +11,5 @@ pip install pyautogui
 
 pip install opencv-python
 '''
+
 If you want this program adapted your lapter, you should make a screenshot in your lapter to replace the picture - "button1.png".
