@@ -22,6 +22,7 @@ class Auto_learn:
                     event.set()
             except KeyboardInterrupt:
                 print('\nExit.')
+            time.sleep(5)
 
     def MoveToPositonClick(self):
         print("click wait until button appear")
