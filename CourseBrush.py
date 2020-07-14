@@ -16,114 +16,81 @@ class Auto_learn:
         self.password = user_pwd.PASSWORD
         self.button="button1.png"
         self.x, self.y = pyautogui.position()
+        self.index = 0
 
     def StartChrome(self):
-        options = webdriver.ChromeOptions()
+        #options = webdriver.ChromeOptions()
         # run with top authority
-        options.add_argument('--no-sandbox')
+        #options.add_argument('--no-sandbox')
+        #options.add_argument("--user-data-dir="+r"/home/zhangben/chrome")
         #options.add_experimental_option('excludeSwitches', ['enable-automation'])
         #self.driver = webdriver.Chrome(chrome_options=options)
         self.driver = webdriver.Chrome()
 
     def Login(self):
-        print("start chrome to login.")
+        print ("start chrome to login.")
         self.StartChrome()
         self.driver.get("https://www.bjjnts.cn/login")
         time.sleep(2)
         print("input username&password")
         self.driver.find_element_by_name("username").send_keys(self.user)
         self.driver.find_element_by_name("password").send_keys(self.password)
+        self.driver.find_element_by_class_name("login_btn").click()
         print("login successfully")
 
-    def get_button_position(self):
-        print("get button positon")
+    def GetAllVedio(self):
+        print("watch ACCA F7 Finance Report")
+        self.driver.get("https://www.bjjnts.cn/lessonStudy/191/3583")
+        self.videos = self.driver.find_elements_by_css_selector("a[class^='change_chapter lesson-']")
+        #try play first video
+        #elements[self.index].click()
+        return
+
+    def FindButtonToClick(self):
+        print("Find button positon and click")
         while True:
             try:
-                print("watch the 'confirm' button")
+                print("watch the 'confirm' button every 30 senconds")
                 self.position = pyautogui.locateOnScreen(self.button, confidence=0.9)
                 if self.position is not None:
                     print("we find it")
-                    event.set()
+                    self.curx, self.cury = pyautogui.center(self.position)
+                    pyautogui.moveTo(self.curx, self.cury, duration=0.25)
+                    #pyautogui.click()
+                    pyautogui.click()
+                    
             except KeyboardInterrupt:
                 print('\nExit.')
-            time.sleep(5)
+            time.sleep(30)
 
-    def MoveToPositonClick(self):
-        print("click wait until button appear")
-        while True:
-            event.wait()
-            print("end wait")
-            self.curx, self.cury = pyautogui.center(self.position)
-            pyautogui.moveTo(self.curx, self.cury, duration=0.25)
-            #pyautogui.click()
-            pyautogui.click()
-            #time.sleep(5)
-            event.clear()
+    def CheckProgress(self, index):
+        sel_rule = "a[class^='change_chapter lesson-%d']"%(index+1)
+        element_temp = self.driver.find_element_by_css_selector(sel_rule)
+        Progress = re.findall(r"\d+\.?\d*%",element_temp.text)
+        current_progress = Progress[0]
+        return current_progress
 
-    def thread_start(self):
-        button_appear=threading.Thread(target=self.get_button_position,)
-        button_appear.start()
-        click=threading.Thread(target=self.MoveToPositonClick,)
-        click.start()
-    '''
-    def play_last(driver,video_index):
-        elements = []
-        while True:
-            try:
-                elements = driver.find_elements_by_css_selector("a[class^='change_chapter lesson-']")
-            except:
-                print ("wait for getting change_chapter")
-                pass
-            if len(elements):
-                print ("get change_chapter")
-                break
+    def PlayVedio(self):
+        self.GetAllVedio()
+        self.videos[self.index].click()
+        while self.index < len(self.videos):
+            time.sleep(180)
+            current_video_progress = self.CheckProgress(self.index)
+            next_video_progress = self.CheckProgress(self.index + 1)
+            if current_video_progress == '100%' and next_video_progress == '0%':
+                self.index = self.index + 1
+                self.videos[self.index].click()
+            else:
+                print("keep watch this vedio until it finished")
 
-        if video_index+1 > len(elements):
-            print ("play complate")
-        exit(1)
+    def StartCourseLesson(self):
+        watch_button = threading.Thread(target=self.FindButtonToClick,)
+        play_next_lesson = threading.Thread(target=self.PlayVedio,)
+        watch_button.start()
+        play_next_lesson.start()
 
-        index = 0
-        if video_index == 0:
-            for element in elements:
-                ProgressBar = re.findall(r"\d+\.?\d*%", element.text)
-                if len(ProgressBar):
-                    if ProgressBar[0] != '100%':
-                        element.click()
-                        speed_keep(driver,element)
-                        return index
-                index += 1
-        else:
-            print ("1==========")
-            print ("playing index: %d"%(video_index))
-            print ("1==========")
-            elements[video_index].click()
-            speed_keep(driver,elements[video_index])
-            return video_index
-    def wait_for_next_play(driver, i):
-        while True:
-            pause_check(driver)
-            flag = 0
-            flag = face_cheack(chrome)
-            print("flag %s" %(flag))
-            if flag == 1:
-            driver.refresh()
-            i -= 1
-            currnt_index = i + 1
-            next_index = currnt_index + 1
-            #pdb.set_trace()
-            sel_rule = "a[class^='change_chapter lesson-%d']" %(next_index)
-            print("next lesson %d" %(next_index))
-            element_temp = driver.find_element_by_css_selector(sel_rule)
-            speed_keep(driver,element_temp)
-            ProgressBar_temp  = re.findall(r"\d+\.?\d*%",element_temp.text)
-            if len(ProgressBar_temp):
-                print ("ProgressBar_temp:" + ProgressBar_temp[0])
-                if ProgressBar_temp[0] == '0%' or ProgressBar_temp[0] == '100%' or flag == 1:
-                    time.sleep(3)
-                    break
-        i += 1
-        return i
-    '''
 auto_learn=Auto_learn()
 #auto_learn.thread_start()
-auto_learn.StartChrome()
+auto_learn.Login()
+time.sleep(5)
+auto_learn.StartCourseLesson()
