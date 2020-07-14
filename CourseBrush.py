@@ -19,13 +19,14 @@ class Auto_learn:
         self.index = 0
 
     def StartChrome(self):
-        #options = webdriver.ChromeOptions()
+        options = webdriver.ChromeOptions()
         # run with top authority
         #options.add_argument('--no-sandbox')
         #options.add_argument("--user-data-dir="+r"/home/zhangben/chrome")
         #options.add_experimental_option('excludeSwitches', ['enable-automation'])
-        #self.driver = webdriver.Chrome(chrome_options=options)
-        self.driver = webdriver.Chrome()
+        options.add_extension("accelerate.crx")
+        self.driver = webdriver.Chrome(chrome_options=options)
+        #self.driver = webdriver.Chrome()
 
     def Login(self):
         print ("start chrome to login.")
@@ -40,7 +41,7 @@ class Auto_learn:
 
     def GetAllVedio(self):
         print("watch ACCA F7 Finance Report")
-        self.driver.get("https://www.bjjnts.cn/lessonStudy/191/3583")
+        self.driver.get("https://www.bjjnts.cn/lessonStudy/5/90")
         self.videos = self.driver.find_elements_by_css_selector("a[class^='change_chapter lesson-']")
         #try play first video
         #elements[self.index].click()
@@ -50,7 +51,7 @@ class Auto_learn:
         print("Find button positon and click")
         while True:
             try:
-                print("watch the 'confirm' button every 30 senconds")
+                print("watch the 'confirm' button every 10 senconds")
                 self.position = pyautogui.locateOnScreen(self.button, confidence=0.9)
                 if self.position is not None:
                     print("we find it")
@@ -61,23 +62,29 @@ class Auto_learn:
                     
             except KeyboardInterrupt:
                 print('\nExit.')
-            time.sleep(30)
+            time.sleep(10)
 
     def CheckProgress(self, index):
         sel_rule = "a[class^='change_chapter lesson-%d']"%(index+1)
         element_temp = self.driver.find_element_by_css_selector(sel_rule)
-        Progress = re.findall(r"\d+\.?\d*%",element_temp.text)
-        current_progress = Progress[0]
+        try:
+            Progress = re.findall(r"\d+\.?\d*%",element_temp.text)
+            current_progress = Progress[0]
+        except:
+            print("the lesson are locked")
+            current_progress = 'lock'
         return current_progress
 
     def PlayVedio(self):
         self.GetAllVedio()
         self.videos[self.index].click()
         while self.index < len(self.videos):
-            time.sleep(180)
+            time.sleep(30)
             current_video_progress = self.CheckProgress(self.index)
             next_video_progress = self.CheckProgress(self.index + 1)
-            if current_video_progress == '100%' and next_video_progress == '0%':
+            print(current_video_progress)
+            print(next_video_progress)
+            if current_video_progress == '100%' and next_video_progress != 'lock':
                 self.index = self.index + 1
                 self.videos[self.index].click()
             else:
