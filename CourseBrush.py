@@ -7,7 +7,7 @@ import pdb
 import user_pwd
 
 pyautogui.FAILSAFE = True
-pyautogui.PAUSE = 2.5
+pyautogui.PAUSE = 1
 event=threading.Event()
 
 class Auto_learn:
@@ -27,6 +27,29 @@ class Auto_learn:
         options.add_extension("accelerate.crx")
         self.driver = webdriver.Chrome(chrome_options=options)
         #self.driver = webdriver.Chrome()
+
+    def KeepSpeed(self, index):
+        while True:
+            print("sleep 30s to watch speed every time")
+            time.sleep(30)
+            try:
+                speed_element = self.driver.find_element_by_css_selector('.tc-videoController')
+                speed_str = re.findall(r"\d+\.?\d*",speed_element.text)
+            except:
+                speed_str = 'unknow'
+                print("the speed can not get now")
+                continue
+
+            if speed_str is not 'unknow':
+                speed = float(speed_str[0])
+
+            if speed < 4:
+                print("the speed of current video is {}, accelerate to 4 times speed to play".format(speed))
+                accelerate_time = 4.0 - speed
+                for i in range(int(accelerate_time * 10)):
+                    self.videos[index].send_keys('D')
+            else:
+                print("currently, the video is keeping play with 4 times speed")
 
     def Login(self):
         print ("start chrome to login.")
@@ -85,16 +108,22 @@ class Auto_learn:
             print(current_video_progress)
             print(next_video_progress)
             if current_video_progress == '100%' and next_video_progress != 'lock':
-                self.index = self.index + 1
-                self.videos[self.index].click()
+                print("play next video")
+                try:
+                    self.index = self.index + 1
+                    self.videos[self.index].click()
+                except:
+                    print("ignore this time")
             else:
                 print("keep watch this vedio until it finished")
 
     def StartCourseLesson(self):
         watch_button = threading.Thread(target=self.FindButtonToClick,)
         play_next_lesson = threading.Thread(target=self.PlayVedio,)
+        keep_speed = threading.Thread(target=self.KeepSpeed,args=(self.index,))
         watch_button.start()
         play_next_lesson.start()
+        keep_speed.start()
 
 auto_learn=Auto_learn()
 #auto_learn.thread_start()
