@@ -15,6 +15,7 @@ class Auto_learn:
         self.user = user_pwd.USERNAME
         self.password = user_pwd.PASSWORD
         self.button="button1.png"
+        self.face_recognition="face_recognition.png"
         self.x, self.y = pyautogui.position()
         self.index = 0
 
@@ -64,18 +65,18 @@ class Auto_learn:
 
     def GetAllVedio(self):
         print("watch ACCA F7 Finance Report")
-        self.driver.get("https://www.bjjnts.cn/lessonStudy/5/90")
+        self.driver.get("https://www.bjjnts.cn/lessonStudy/6/152")
         self.videos = self.driver.find_elements_by_css_selector("a[class^='change_chapter lesson-']")
         #try play first video
         #elements[self.index].click()
         return
 
-    def FindButtonToClick(self):
+    def FindButtonToClick(self, button):
         print("Find button positon and click")
         while True:
             try:
-                print("watch the 'confirm' button every 10 senconds")
-                self.position = pyautogui.locateOnScreen(self.button, confidence=0.9)
+                print("watch the button every 10 senconds")
+                self.position = pyautogui.locateOnScreen(button, confidence=0.9)
                 if self.position is not None:
                     print("we find it")
                     self.curx, self.cury = pyautogui.center(self.position)
@@ -105,8 +106,8 @@ class Auto_learn:
             time.sleep(30)
             current_video_progress = self.CheckProgress(self.index)
             next_video_progress = self.CheckProgress(self.index + 1)
-            print(current_video_progress)
-            print(next_video_progress)
+            print("Current video play process is ", current_video_progress)
+            print("next video play process is ", next_video_progress)
             if current_video_progress == '100%' and next_video_progress != 'lock':
                 print("play next video")
                 try:
@@ -118,10 +119,12 @@ class Auto_learn:
                 print("keep watch this vedio until it finished")
 
     def StartCourseLesson(self):
-        watch_button = threading.Thread(target=self.FindButtonToClick,)
+        watch_button = threading.Thread(target=self.FindButtonToClick,args=(self.button,))
+        face_recognition = threading.Thread(target=self.FindButtonToClick,args=(self.face_recognition,))
         play_next_lesson = threading.Thread(target=self.PlayVedio,)
         keep_speed = threading.Thread(target=self.KeepSpeed,args=(self.index,))
         watch_button.start()
+        face_recognition.start()
         play_next_lesson.start()
         keep_speed.start()
 
